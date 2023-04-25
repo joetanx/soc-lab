@@ -48,12 +48,33 @@ tail -f /var/log/suricata/fast.log
 ## 2. SIEM: Elasticsearch + Kibana
 
 References:
+- <https://www.elastic.co/guide/en/elasticsearch/reference/current/rpm.html>
+- <https://www.elastic.co/guide/en/kibana/current/rpm.html>
 - <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-minimal-setup.html>
-- <https://computingforgeeks.com/install-elastic-stack-elk-on-rhel-centos/>
+
+### 2.1. Setup Elastic repository
+
+Import GPG key
+
+> The signature is SHA1
+>
+> `update-crypto-policies --set DEFAULT:SHA1` is required on newer OS
+>
+> Otherwise, the following error will be encountered when importing the GPG key
+>
+> ```
+> warning: Signature not supported. Hash algorithm SHA1 not available.
+> error: https://artifacts.elastic.co/GPG-KEY-elasticsearch: key 1 import failed.
+> ```
 
 ```sh
 update-crypto-policies --set DEFAULT:SHA1
 rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+```
+
+Configure Elastic repository
+
+```sh
 cat << EOF >> /etc/yum.repos.d/elasticsearch.repo
 [elasticsearch]
 name=Elasticsearch repository for 8.x packages
@@ -64,26 +85,78 @@ enabled=0
 autorefresh=1
 type=rpm-md
 EOF
+```
+
+### 2.2. Install and configure Elastic Stack
+
+Install Elastic search and Kibana
+
+```sh
 yum -y install --enablerepo=elasticsearch elasticsearch kibana
-cp /etc/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml.bak
-sed -i -e '/#network.host: 192.168.0.1/anetwork.bind_host: 0.0.0.0' /etc/elasticsearch/elasticsearch.yml
-# sed -i -e '/#discovery.seed_hosts:/adiscovery.type: single-node' /etc/elasticsearch/elasticsearch.yml
-# sed -i '/cluster.initial_master_nodes:/d' /etc/elasticsearch/elasticsearch.yml
+```
+
+### 2.2.1. Configure Elasticsearch
+
+Edit Elasticsearch configuration file:
+
+|   |   |
+|---|---|
+|Backup original configuraton file|`cp /etc/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml.bak`|
+|Bind Elasticsearch to any network|`sed -i -e '/#network.host: 192.168.0.1/anetwork.bind_host: 0.0.0.0' /etc/elasticsearch/elasticsearch.yml`|
+|Configure the stack as a single-node cluster ([Ref](https://www.elastic.co/guide/en/elasticsearch/reference/current/security-minimal-setup.html#_enable_elasticsearch_security_features))|`sed -i -e '/#discovery.seed_hosts:/adiscovery.type: single-node' /etc/elasticsearch/elasticsearch.yml`|
+|Remove `cluster.initial_master_nodes` for single-node cluster ([Ref](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery-bootstrap-cluster.html))|`sed -i '/^cluster.initial_master_nodes:/d' /etc/elasticsearch/elasticsearch.yml`|
+
+Allow access to Elastic Stack on firewall:
+
+```sh
 firewall-cmd --permanent --add-service=elasticsearch
 firewall-cmd --permanent --add-service=kibana
 firewall-cmd --reload
+```
+
+Enable+start Elasticsearch:
+
+```sh
 systemctl enable --now elasticsearch
-# /usr/share/elasticsearch/bin/elasticsearch-setup-passwords auto
-cp /etc/kibana/kibana.yml /etc/kibana/kibana.yml.bak
-# KEYS=$(/usr/share/kibana/bin/kibana-encryption-keys generate -q --force)
-# echo $KEYS >> /etc/kibana/kibana.yml
-sed -i -e '/#server.host: "localhost"/aserver.host: "0.0.0.0"' /etc/kibana/kibana.yml
-sed -i '/elasticsearch.hosts:/s/^#//g' /etc/kibana/kibana.yml
-/usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
-/usr/share/kibana/bin/kibana-verification-code
-# /usr/share/kibana/bin/kibana-keystore add elasticsearch.username
-# /usr/share/kibana/bin/kibana-keystore add elasticsearch.password
+```
+
+### 2.2.2. Configure Kibana
+
+Edit Kibana configuration file:
+
+|   |   |
+|---|---|
+|Backup original configuraton file|`cp /etc/kibana/kibana.yml /etc/kibana/kibana.yml.bak`|
+|Bind Kibana to any network|`sed -i -e '/#server.host: "localhost"/aserver.host: "0.0.0.0"' /etc/kibana/kibana.yml`|
+|Uncomment `#elasticsearch.hosts: ["http://localhost:9200"]`<br>to connect Kibana to Elasticsearch on localhost|`sed -i '/elasticsearch.hosts:/s/^#//g' /etc/kibana/kibana.yml`|
+
+Enable+start Kibana:
+
+```sh
 systemctl enable --now kibana
+```
+
+Generate enrollment token for Kibana:
+
+```sh
+/usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
+```
+
+Browse to `http://kibana-host:5601` and enter the enrollment token:
+
+![image](https://user-images.githubusercontent.com/90442032/234185217-440902aa-e4cb-4231-ad84-28d0249b1732.png)
+
+Generate verification code and enter into Kibana page:
+
+```sh
+/usr/share/kibana/bin/kibana-verification-code
+```
+
+![image](https://user-images.githubusercontent.com/90442032/234185269-2648ba42-8b6a-410d-8673-af15454349e5.png)
+
+Reset password for `elastic` and login
+
+```sh
 /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic
 ```
 
