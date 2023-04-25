@@ -50,6 +50,7 @@ tail -f /var/log/suricata/fast.log
 References:
 - <https://www.elastic.co/guide/en/elasticsearch/reference/current/rpm.html>
 - <https://www.elastic.co/guide/en/kibana/current/rpm.html>
+- <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-minimal-setup.html>
 
 ### 2.1. Setup Elastic repository
 
@@ -94,37 +95,7 @@ Install Elastic search and Kibana
 yum -y install --enablerepo=elasticsearch elasticsearch kibana
 ```
 
-### 2.2.1. Configure Elasticsearch
-
-Backup original configuraton file: `cp /etc/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml.bak`
-
-#### Bind Elasticsearch to `0.0.0.0`:
-
-```sh
-sed -i -e '/#network.host: 192.168.0.1/anetwork.bind_host: 0.0.0.0' /etc/elasticsearch/elasticsearch.yml
-```
-
-#### Enabling the Elasticsearch security features:
-
-Ref: <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-minimal-setup.html#_enable_elasticsearch_security_features>
-
-`xpack.security.enabled: true` is set by default
-
-Configure the stack as a single-node cluster:
-
-```sh
-sed -i -e '/#discovery.seed_hosts:/adiscovery.type: single-node' /etc/elasticsearch/elasticsearch.yml
-```
-
-Remove `cluster.initial_master_nodes` setting
-
-> This is required because setting `discovery.type: single-node` without removing `cluster.initial_master_nodes` will cause `java.lang.IllegalArgumentException: setting [cluster.initial_master_nodes] is not allowed when [discovery.type] is set to [single-node]` error
-
-```sh
-sed -i '/^cluster.initial_master_nodes:/d' /etc/elasticsearch/elasticsearch.yml
-```
-
-#### Allow access to Elastic Stack on firewall:
+Allow access to Elastic Stack on firewall:
 
 ```sh
 firewall-cmd --permanent --add-service=elasticsearch
@@ -132,7 +103,26 @@ firewall-cmd --permanent --add-service=kibana
 firewall-cmd --reload
 ```
 
-#### Enable + start Elasticsearch:
+### 2.2.1. Configure Elasticsearch
+
+Backup original configuraton file: `cp /etc/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml.bak`
+
+The following commands configure:
+- Bind Elasticsearch to `0.0.0.0`
+- Configure the stack as a single-node cluster
+- Remove `cluster.initial_master_nodes` setting
+
+```sh
+sed -i -e '/#network.host: 192.168.0.1/anetwork.bind_host: 0.0.0.0' /etc/elasticsearch/elasticsearch.yml
+sed -i -e '/#discovery.seed_hosts:/adiscovery.type: single-node' /etc/elasticsearch/elasticsearch.yml
+sed -i '/^cluster.initial_master_nodes:/d' /etc/elasticsearch/elasticsearch.yml
+```
+
+> `xpack.security.enabled: true` is set by default in Elasticsearch and Kibana from version 8.0.0 onwards
+>
+> Remove `cluster.initial_master_nodes` setting is required because setting `discovery.type: single-node` without removing `cluster.initial_master_nodes` will cause `java.lang.IllegalArgumentException: setting [cluster.initial_master_nodes] is not allowed when [discovery.type] is set to [single-node]` error
+
+Enable + start Elasticsearch:
 
 ```sh
 systemctl enable --now elasticsearch
@@ -142,58 +132,22 @@ systemctl enable --now elasticsearch
 
 Backup original configuraton file: `cp /etc/kibana/kibana.yml /etc/kibana/kibana.yml.bak`
 
-#### Bind Kibana to `0.0.0.0`:
+The following commands configure:
+- Bind Kibana to `0.0.0.0`
+- Uncomment `#elasticsearch.hosts: ["http://localhost:9200"]` to connect Kibana to Elasticsearch on localhost
 
 ```sh
 sed -i -e '/#server.host: "localhost"/aserver.host: "0.0.0.0"' /etc/kibana/kibana.yml
-```
-
-#### Configure Elasticsearch connection
-
-Uncomment `#elasticsearch.hosts: ["http://localhost:9200"]` to connect Kibana to Elasticsearch on localhost:
-
-```sh
 sed -i '/elasticsearch.hosts:/s/^#//g' /etc/kibana/kibana.yml
 ```
 
-### 2.2.3. Configure Kibana to connect to Elasticsearch with a password
-
-Ref: <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-minimal-setup.html#add-built-in-users>
-
-Uncomment `#elasticsearch.username: "kibana_system"`:
-
-```sh
-sed -i '/elasticsearch.username:/s/^#//g' /etc/kibana/kibana.yml
-```
-
-Reset password for `kibana_system`
-
-```sh
-/usr/share/elasticsearch/bin/elasticsearch-reset-password -u kibana_system
-```
-
-Create the Kibana keystore:
-
-```sh
-/usr/share/kibana/bin/kibana-keystore create
-```
-
-Add the password for the kibana_system user to the Kibana keystore:
-
-```sh
-/usr/share/kibana/bin/kibana-keystore add elasticsearch.password
-```
-
 Enable + start Kibana:
+
 ```sh
 systemctl enable --now kibana
 ```
 
-<details><Summary>Archived: Configure Kibana to connect to Elasticsearch with enrollment token</Summary>
-
-<br>
-
-Enable + start Kibana: `systemctl enable --now kibana`
+### 2.2.3. Configure Kibana to connect to Elasticsearch
 
 Generate enrollment token for Kibana: `/usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana`
 
@@ -201,15 +155,11 @@ Browse to `http://kibana-host:5601` and enter the enrollment token:
 
 ![image](https://user-images.githubusercontent.com/90442032/234185217-440902aa-e4cb-4231-ad84-28d0249b1732.png)
 
-Generate verification code and enter into Kibana page:
+Generate verification code: `/usr/share/kibana/bin/kibana-verification-code`
 
-```sh
-/usr/share/kibana/bin/kibana-verification-code
-```
+ Enter verification code into Kibana page:
 
 ![image](https://user-images.githubusercontent.com/90442032/234185269-2648ba42-8b6a-410d-8673-af15454349e5.png)
-
-</details>
 
 Reset password for `elastic` and login
 
