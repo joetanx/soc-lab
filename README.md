@@ -1,14 +1,10 @@
 ## 1. Network IDS: Suricata
 
 References:
-- How To Install Suricata on CentOS 8 Stream
-  - <https://www.digitalocean.com/community/tutorials/how-to-install-suricata-on-centos-8-stream>
-  - <https://forum.suricata.io/t/guide-getting-started-on-centos-8-and-centos-7/538>
-- Understanding Suricata Signatures
-  - <https://www.digitalocean.com/community/tutorials/understanding-suricata-signatures>
+- How To Install Suricata on CentOS 8 Stream: <https://www.digitalocean.com/community/tutorials/how-to-install-suricata-on-centos-8-stream>
+- Understanding Suricata Signatures: <https://www.digitalocean.com/community/tutorials/understanding-suricata-signatures>
 
-Install Suricata:
-
+### 1.1. Install Suricata:
 
 ```sh
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
@@ -16,8 +12,9 @@ yum -y copr enable @oisf/suricata-latest
 yum -y install suricata
 ```
 
-Edit Suricata configuration:
-- Multiple interfaces: <http://pevma.blogspot.com/2015/05/suricata-multiple-interface.html>
+### 1.2. Edit Suricata configuration:
+
+Multiple interfaces: Read "Set the Interface" <https://forum.suricata.io/t/guide-getting-started-on-centos-8-and-centos-7/538>
 
 ```sh
 cp /etc/suricata/suricata.yaml /etc/suricata/suricata.yaml.bak
@@ -27,8 +24,7 @@ sed -i 's/-i eth0/-i eth0 -i eth1/' /etc/sysconfig/suricata
 systemctl daemon-reload
 ```
 
-Test and enable+start Suricata service:
-- Multiple interfaces: <http://pevma.blogspot.com/2015/05/suricata-multiple-interface.html>
+### 1.3. Test and enable+start Suricata service:
 
 ```sh
 sudo -u suricata suricata-update
@@ -37,7 +33,7 @@ systemctl status suricata
 tail /var/log/suricata/suricata.log
 ```
 
-Test IDS:
+### 1.4. Test IDS:
 
 ```sh
 curl http://testmynids.org/uid/index.html
