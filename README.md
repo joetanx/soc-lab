@@ -32,7 +32,6 @@ Test and enable+start Suricata service:
 
 ```sh
 sudo -u suricata suricata-update
-sudo -u suricata suricata -T -c /etc/suricata/suricata.yaml -v
 systemctl enable --now suricata
 systemctl status suricata
 tail /var/log/suricata/suricata.log
