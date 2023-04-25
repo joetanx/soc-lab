@@ -7,20 +7,40 @@ References:
 - Understanding Suricata Signatures
   - <https://www.digitalocean.com/community/tutorials/understanding-suricata-signatures>
 
-```console
+Install Suricata:
+
+
+```sh
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 yum -y copr enable @oisf/suricata-latest
 yum -y install suricata
+```
+
+Edit Suricata configuration:
+- Multiple interfaces: <http://pevma.blogspot.com/2015/05/suricata-multiple-interface.html>
+
+```sh
 cp /etc/suricata/suricata.yaml /etc/suricata/suricata.yaml.bak
 sed -i 's/      community-id: false/\      community-id: true/' /etc/suricata/suricata.yaml
 echo -e "detect-engine:\n  - rule-reload: true" >> /etc/suricata/suricata.yaml
 sed -i 's/-i eth0/-i eth0 -i eth1/' /etc/sysconfig/suricata
-systemtl daemon-reload
+systemctl daemon-reload
+```
+
+Test and enable+start Suricata service:
+- Multiple interfaces: <http://pevma.blogspot.com/2015/05/suricata-multiple-interface.html>
+
+```sh
 sudo -u suricata suricata-update
+sudo -u suricata suricata -T -c /etc/suricata/suricata.yaml -v
 systemctl enable --now suricata
 systemctl status suricata
-sudo -u suricata suricata -T -c /etc/suricata/suricata.yaml -v
 tail /var/log/suricata/suricata.log
+```
+
+Test IDS:
+
+```sh
 curl http://testmynids.org/uid/index.html
 curl -Lk http://testmyids.com
 tail -f /var/log/suricata/fast.log
@@ -29,7 +49,6 @@ tail -f /var/log/suricata/fast.log
 > Attempting to `curl https://testmyids.com` didn't log any events, perhaps because it's encrypted?
 
 - More IDS test: <https://github.com/3CORESec/testmynids.org>
-- Multiple interfaces: <http://pevma.blogspot.com/2015/05/suricata-multiple-interface.html>
 
 ## 2. SIEM: Elasticsearch + Kibana
 
@@ -37,7 +56,7 @@ References:
 - <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-minimal-setup.html>
 - <https://computingforgeeks.com/install-elastic-stack-elk-on-rhel-centos/>
 
-```console
+```sh
 update-crypto-policies --set DEFAULT:SHA1
 rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
 cat << EOF >> /etc/yum.repos.d/elasticsearch.repo
