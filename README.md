@@ -43,7 +43,7 @@ tail -f /var/log/suricata/fast.log
 
 > Attempting to `curl https://testmyids.com` didn't log any events, perhaps because it's encrypted?
 
-- More IDS test: <https://github.com/3CORESec/testmynids.org>
+- More IDS tests: <https://github.com/3CORESec/testmynids.org>
 
 ## 2. SIEM: Elasticsearch + Kibana
 
@@ -160,7 +160,7 @@ Reset password for `elastic` and login
 /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic
 ```
 
-### 2.1. Integrate Suricate to Elastic
+### 2.3. Integrate Suricata to Elastic
 
 - How To Build A SIEM with Suricata and Elastic Stack on CentOS 8 Stream
   - <https://www.digitalocean.com/community/tutorials/how-to-build-a-siem-with-suricata-and-elastic-stack-on-centos-8-stream>
