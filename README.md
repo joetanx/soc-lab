@@ -103,6 +103,12 @@ firewall-cmd --permanent --add-service=kibana
 firewall-cmd --reload
 ```
 
+### 2.2.0. Certificate configuration
+
+<https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup-https.html>
+<https://www.elastic.co/guide/en/elasticsearch/reference/current/certutil.html>
+<https://www.elastic.co/guide/en/elasticsearch/reference/current/update-node-certs.html>
+
 ### 2.2.1. Configure Elasticsearch
 
 Backup original configuraton file: `cp /etc/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml.bak`
