@@ -104,11 +104,11 @@ firewall-cmd --reload
 ```
 
 ### 2.2.0. Certificate configuration
-<https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup.html>
-<https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup-https.html>
-<https://opster.com/guides/elasticsearch/security/elasticsearch-cluster-security/>
-<https://blog.clairvoyantsoft.com/secure-elasticsearch-communication-bdee1bbe37e>
-<https://blog.pythian.com/how-to-secure-your-elastic-stack-plus-kibana-logstash-and-beats/>
+
+- <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup.html>
+- <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup-https.html>
+- <https://opster.com/guides/elasticsearch/security/elasticsearch-cluster-security/>
+- <https://blog.clairvoyantsoft.com/secure-elasticsearch-communication-bdee1bbe37e>
 
 ### 2.2.1. Configure Elasticsearch
 
