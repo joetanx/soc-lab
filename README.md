@@ -245,6 +245,14 @@ Read more about generating self-signed certificate authority [here](https://gith
 |Import the certificate authority into the certificate bundle with alias as `http-ca`|`keytool -importcert -trustcacerts -noprompt -keystore http.p12 -storepass elastic-http -alias http-ca -file central.pem`|
 |Verify the resultant certificate bundle|`echo elastic-http \| keytool -keystore http.p12 -list`|
 
+#### ☝️ About adding certificate authority to the `.p12` bundle using keytool
+
+This step is required; otherwise, the below error will occur:
+
+```
+org.elasticsearch.ElasticsearchSecurityException: failed to load SSL configuration [xpack.security.transport.ssl] - the truststore [/etc/elasticsearch/certs/transport.p12] does not contain any trusted certificate entries
+```
+
 ### 2.5. Configure Elasticsearch
 
 #### 2.5.1. Replace the auto-generated certificates:
