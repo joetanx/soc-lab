@@ -107,8 +107,7 @@ firewall-cmd --reload
 
 - <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup.html>
 - <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup-https.html>
-- <https://opster.com/guides/elasticsearch/security/elasticsearch-cluster-security/>
-- <https://blog.clairvoyantsoft.com/secure-elasticsearch-communication-bdee1bbe37e>
+- <https://www.elastic.co/guide/en/elasticsearch/reference/current/update-node-certs-different.html>
 
 ### 2.2.1. Configure Elasticsearch
 
