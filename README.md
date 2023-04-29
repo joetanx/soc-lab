@@ -343,7 +343,12 @@ Reset password for `elastic` and login
 /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic
 ```
 
-### 2.7. Integrate Suricata to Elastic
+### 2.7. Setup Fleet
+
+- <https://www.elastic.co/guide/en/fleet/current/add-fleet-server-on-prem.html>
+- <https://www.elastic.co/guide/en/fleet/current/secure-connections.html>
+
+### 2.8. Integrate Suricata to Elastic
 
 - How To Build A SIEM with Suricata and Elastic Stack on CentOS 8 Stream
   - <https://www.digitalocean.com/community/tutorials/how-to-build-a-siem-with-suricata-and-elastic-stack-on-centos-8-stream>
