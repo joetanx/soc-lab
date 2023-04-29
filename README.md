@@ -327,6 +327,7 @@ Backup original configuraton file: `cp /etc/kibana/kibana.yml /etc/kibana/kibana
 |Set Kibana HTTPS certificate|`sed -i -e '/#server.ssl.certificate:/aserver.ssl.certificate: \/etc\/kibana\/certs\/http.crt' /etc/kibana/kibana.yml`|
 |Set Kibana HTTPS key|`sed -i -e '/#server.ssl.key:/aserver.ssl.key: \/etc\/kibana\/certs\/http.key' /etc/kibana/kibana.yml`|
 |Connect to Elasticsearch on localhost via HTTPS|`sed -i -e '/#elasticsearch.hosts:/aelasticsearch.hosts: https:\/\/localhost:9200' /etc/kibana/kibana.yml`|
+|Set the Elasticsearch CA|`sed -i -e '/#elasticsearch.ssl.certificateAuthorities:/aelasticsearch.ssl.certificateAuthorities: \/etc\/kibana\/elasticsearch-ca.pem' /etc/kibana/kibana.yml`|
 |Uncomment to enable full veritifcation of Elasticsearch certificate|`sed -i '/elasticsearch.ssl.verificationMode:/s/^#//' /etc/kibana/kibana.yml`|
 
 Enable + start Kibana:
