@@ -107,6 +107,10 @@ firewall-cmd --reload
 
 Elasticsearch after version 8.0 are installed with security enabled by default
 
+Ref: <https://www.elastic.co/guide/en/elasticsearch/reference/8.7/configuring-stack-security.html#stack-security-certificates>
+
+Default security settings in `/etc/elasticsearch/elasticsearch.yml`:
+
 ```yaml
 # Enable security features
 xpack.security.enabled: true
