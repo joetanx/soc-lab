@@ -377,9 +377,9 @@ To use self-generated certificates, modify the `elastic-agent install` command a
 sudo ./elastic-agent install \
    --url=https://192.0.2.1:8220 \
    --fleet-server-es=https://192.0.2.0:9200 \
-   --fleet-server-service-token=AAEBAWVsYXm0aWMvZmxlZXQtc2XydmVyL3Rva2VuLTE2MjM4OTAztDU1OTQ6dllfVW1mYnFTVjJwTC2ZQ0EtVnVZQQ \
+   --fleet-server-service-token=<string> \
    --fleet-server-policy=fleet-server-policy \
-   --fleet-server-es-ca-trusted-fingerprint=base64-sha256-fingerprint \
+   --fleet-server-es-ca-trusted-fingerprint=<base64-sha256-fingerprint> \
    --fleet-server-cert=/path/to/fleet-server.crt \
    --fleet-server-cert-key=/path/to/fleet-server.key
 ```
@@ -419,7 +419,7 @@ To use self-generated certificates, modify the `elastic-agent install` command a
 ```sh
 sudo elastic-agent install --url=https://192.0.2.1:8220 \
   --enrollment-token=<string> \
-  --fleet-server-es-ca-trusted-fingerprint=base64-sha256-fingerprint
+  --fleet-server-es-ca-trusted-fingerprint=<base64-sha256-fingerprint>
 ```
 
 Example successful installation output:
