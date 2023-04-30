@@ -4,7 +4,23 @@ References:
 - How To Install Suricata on CentOS 8 Stream: <https://www.digitalocean.com/community/tutorials/how-to-install-suricata-on-centos-8-stream>
 - Understanding Suricata Signatures: <https://www.digitalocean.com/community/tutorials/understanding-suricata-signatures>
 
-### 1.1. Install Suricata:
+### 1.1. Port mirroring:
+
+Lab network information:
+- The lab is based on Hyper-V
+- There are 2 networks `Server` and `Home` in the lab
+- The outbound traffic for both networks goes to a firewall with an interface in each network
+- For Suricata to monitor outbound traffic for both networks, port mirroring is configured to mirror the traffic on the firewall to Suricata
+
+Interface setting on the firewall network adapter:
+
+![image](https://user-images.githubusercontent.com/90442032/235355173-dcf54a67-97ed-419c-a306-1f151ee5ebc2.png)
+
+Interface setting on the Suricata network adapter:
+
+![image](https://user-images.githubusercontent.com/90442032/235355190-55d747e2-b397-4ee5-988d-790e599eaa32.png)
+
+### 1.2. Install Suricata:
 
 ```sh
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
@@ -12,7 +28,7 @@ yum -y copr enable @oisf/suricata-latest
 yum -y install suricata
 ```
 
-### 1.2. Edit Suricata configuration:
+### 1.3. Edit Suricata configuration:
 
 Multiple interfaces: Read "Set the Interface" <https://forum.suricata.io/t/guide-getting-started-on-centos-8-and-centos-7/538>
 
@@ -24,7 +40,7 @@ sed -i 's/-i eth0/-i eth0 -i eth1/' /etc/sysconfig/suricata
 systemctl daemon-reload
 ```
 
-### 1.3. Test and enable+start Suricata service:
+### 1.4. Test and enable+start Suricata service:
 
 ```sh
 sudo -u suricata suricata-update
@@ -33,7 +49,7 @@ systemctl status suricata
 tail /var/log/suricata/suricata.log
 ```
 
-### 1.4. Test IDS:
+### 1.5. Test IDS:
 
 ```sh
 curl http://testmynids.org/uid/index.html
@@ -440,15 +456,47 @@ Elastic Agent has been successfully installed.
 
 ### 2.8. Integrate Suricata to Elastic
 
-- How To Build A SIEM with Suricata and Elastic Stack on CentOS 8 Stream
-  - <https://www.digitalocean.com/community/tutorials/how-to-build-a-siem-with-suricata-and-elastic-stack-on-centos-8-stream>
-  - <https://www.howtoforge.com/how-to-install-and-configure-suricata-ids-along-with-elastic-stack-on-rocky-linux-8/>
-- How To Create Rules, Timelines, and Cases from Suricata Events Using Kibana's SIEM Apps
-  - <https://www.digitalocean.com/community/tutorials/how-to-create-rules-timelines-and-cases-from-suricata-events-using-kibana-s-siem-apps>
+#### 2.8.1. Add Suricata integration to Elastic Agent
 
-## 3. Host-based IDS: Wazuh
+Go to the Agent policy created previous and select `Add integration`
+
+![image](https://user-images.githubusercontent.com/90442032/235355414-2c00b19c-8d28-4731-8e68-c03f750023c1.png)
+
+Search for Suricata and select `Add Suricata`
+
+![image](https://user-images.githubusercontent.com/90442032/235355455-f127632e-4fb7-44bf-a7d5-f32b0a0fdcbd.png)
+
+![image](https://user-images.githubusercontent.com/90442032/235355475-577d9074-83c2-4395-ba74-3f6f129b5102.png)
+
+#### 2.8.2. Visualizing Suricata events
+
+Simply search for Suricata returns `Alerts` and `Events` views in both `Dashboard` and `Discover` views
+
+![image](https://user-images.githubusercontent.com/90442032/235355507-f97e57b8-2b98-4692-824d-7c2b5bc0309d.png)
+
+##### 2.8.2.1. Dashboard > Alerts
+
+![image](https://user-images.githubusercontent.com/90442032/235355657-4c50d8c3-3145-4cc7-8222-a5cd83e34d1f.png)
+
+##### 2.8.2.2. Dashboard > Events
+
+![image](https://user-images.githubusercontent.com/90442032/235355663-b6d45fb6-7ea8-452a-bed3-83624a4303bd.png)
+
+##### 2.8.2.3. Discover > Alerts
+
+![image](https://user-images.githubusercontent.com/90442032/235355668-9a122a04-fe90-49db-b290-ac38aa6876b3.png)
+
+##### 2.8.2.4. Discover > Events
+
+![image](https://user-images.githubusercontent.com/90442032/235355672-4874fbb7-b912-4675-98c3-f64b78515ca8.png)
+
+##### 2.8.2.5. Network view
+
+![image](https://user-images.githubusercontent.com/90442032/235355693-7eaa236d-0cc5-4b81-83f1-8a2502f2b8e5.png)
+
+## 3. TBA: Host-based IDS: Wazuh
 
 References:
 - <https://documentation.wazuh.com/current/proof-of-concept-guide/index.html>
 
-## 4. Performance monitoring: Grafana + Prometheus
+## 4. TBA: Performance monitoring: Grafana + Prometheus
