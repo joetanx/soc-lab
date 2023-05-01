@@ -61,7 +61,7 @@ tail -f /var/log/suricata/fast.log
 
 - More IDS tests: <https://github.com/3CORESec/testmynids.org>
 
-## 2. SIEM: Elasticsearch + Kibana
+## 2. Elastic Stack
 
 References:
 - <https://www.elastic.co/guide/en/elasticsearch/reference/current/rpm.html>
@@ -304,7 +304,7 @@ Backup original configuraton file: `cp /etc/elasticsearch/elasticsearch.yml /etc
 
 > Remove `cluster.initial_master_nodes` setting is required because setting `discovery.type: single-node` without removing `cluster.initial_master_nodes` will cause `java.lang.IllegalArgumentException: setting [cluster.initial_master_nodes] is not allowed when [discovery.type] is set to [single-node]` error
 
-Enable + start Elasticsearch:
+#### 2.5.4. Enable + start Elasticsearch
 
 ```sh
 systemctl enable --now elasticsearch
@@ -346,13 +346,37 @@ Backup original configuraton file: `cp /etc/kibana/kibana.yml /etc/kibana/kibana
 |Set the Elasticsearch CA|`sed -i -e '/#elasticsearch.ssl.certificateAuthorities:/aelasticsearch.ssl.certificateAuthorities: \/etc\/kibana\/elasticsearch-ca.pem' /etc/kibana/kibana.yml`|
 |Uncomment to enable full veritifcation of Elasticsearch certificate|`sed -i '/elasticsearch.ssl.verificationMode:/s/^#//' /etc/kibana/kibana.yml`|
 
-Enable + start Kibana:
+##### 2.6.3.1. Configure Kibana encryption keys
+
+Kibana encryption keys are required for persistent saved objects, running Kibana with encryption keys will lead to following errors:
+
+Under Security > Alerts:
+
+![image](https://user-images.githubusercontent.com/90442032/235391887-a49b36b0-0fea-4327-81da-d8a5d324172b.png)
+
+Under Management > Stack Management > Alerts and Insights > Cases:
+
+![image](https://user-images.githubusercontent.com/90442032/235392027-7d7f0e2e-dbf1-48da-bb16-040813fd70c9.png)
+
+Generate Kibana encyption keys: `/usr/share/kibana/bin/kibana-encryption-keys generate`
+
+Append the keys to `/etc/kibana/kibana.yml`
+
+```sh
+cat << EOF >> /etc/kibana/kibana.yml
+xpack.encryptedSavedObjects.encryptionKey: 6ef2d28868f25ab9fa7772dfb86b258f
+xpack.reporting.encryptionKey: e4d0e17626b51e785ee12f2c9aa08adf
+xpack.security.encryptionKey: ca716e0bcb992155aefef67fdd44e56e
+EOF
+```
+
+#### 2.6.4. Enable + start Kibana
 
 ```sh
 systemctl enable --now kibana
 ```
 
-#### 2.6.4. Login to Kibana
+#### 2.6.5. Login to Kibana
 
 Reset password for `elastic` and login
 
@@ -360,11 +384,11 @@ Reset password for `elastic` and login
 /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic
 ```
 
-### 2.7. Setup Elastic Agent
+## 3. Setup Elastic Agent
 
 Ref: <https://www.elastic.co/guide/en/fleet/current/add-fleet-server-on-prem.html>
 
-#### 2.7.1. Edit Elastic Agent output
+### 3.1. Edit Elastic Agent output
 
 Go to `Management` → `Fleet`, select `Edit` on the `default` entry under `Output`
 
@@ -375,7 +399,7 @@ To get certificate fingerprint: `openssl x509 -fingerprint -sha256 -in /path/to/
 
 ![image](https://user-images.githubusercontent.com/90442032/235343709-edb47e12-b265-4a19-86a0-c74e070b2322.png)
 
-#### 2.7.2. Setup Fleet Server
+### 3.2. Setup Fleet Server
 
 Go to `Management` → `Fleet`, select `Add Fleet Server` under `Fleet server hosts`
 
@@ -420,7 +444,7 @@ Allow Fleet Server communication on firewall:
 firewall-cmd --add-port 8220/tcp --permanent && firewall-cmd --reload
 ```
 
-#### 2.7.3. Setup Elastic Agent
+### 3.3. Setup Elastic Agent
 
 Select `Continue enrolling Elastic Agent` from the previous wizard and create an Agent policy:
 
@@ -450,13 +474,13 @@ Elastic Agent has been successfully installed.
 
 ![image](https://user-images.githubusercontent.com/90442032/235344335-24154c78-b068-4417-a788-9f844d3bdc8f.png)
 
-#### 2.7.4. Example Fleet Server + Elastic Agent output
+### 3.4. Example Fleet Server + Elastic Agent output
 
 ![image](https://user-images.githubusercontent.com/90442032/235344386-a573adfc-ba08-44bf-ba2c-0875d9e6342e.png)
 
-### 2.8. Integrate Suricata to Elastic
+## 4. Integrate Suricata to Elastic
 
-#### 2.8.1. Add Suricata integration to Elastic Agent
+### 4.1. Add Suricata integration to Elastic Agent
 
 Go to the Agent policy created previous and select `Add integration`
 
@@ -468,35 +492,93 @@ Search for Suricata and select `Add Suricata`
 
 ![image](https://user-images.githubusercontent.com/90442032/235355475-577d9074-83c2-4395-ba74-3f6f129b5102.png)
 
-#### 2.8.2. Visualizing Suricata events
+### 4.2. Visualizing Suricata events
 
 Simply search for Suricata returns `Alerts` and `Events` views in both `Dashboard` and `Discover` views
 
 ![image](https://user-images.githubusercontent.com/90442032/235355507-f97e57b8-2b98-4692-824d-7c2b5bc0309d.png)
 
-##### 2.8.2.1. Dashboard > Alerts
+#### 4.2.1. Dashboard > Alerts
 
 ![image](https://user-images.githubusercontent.com/90442032/235355657-4c50d8c3-3145-4cc7-8222-a5cd83e34d1f.png)
 
-##### 2.8.2.2. Dashboard > Events
+#### 4.2.2. Dashboard > Events
 
 ![image](https://user-images.githubusercontent.com/90442032/235355663-b6d45fb6-7ea8-452a-bed3-83624a4303bd.png)
 
-##### 2.8.2.3. Discover > Alerts
+#### 4.2.3. Discover > Alerts
 
 ![image](https://user-images.githubusercontent.com/90442032/235355668-9a122a04-fe90-49db-b290-ac38aa6876b3.png)
 
-##### 2.8.2.4. Discover > Events
+#### 4.2.4. Discover > Events
 
 ![image](https://user-images.githubusercontent.com/90442032/235355672-4874fbb7-b912-4675-98c3-f64b78515ca8.png)
 
-##### 2.8.2.5. Network view
+#### 4.2.5. Network view
 
 ![image](https://user-images.githubusercontent.com/90442032/235355693-7eaa236d-0cc5-4b81-83f1-8a2502f2b8e5.png)
 
-## 3. TBA: Host-based IDS: Wazuh
+## 5. Additional Elastic configurations
+
+### 5.1. Stack monitoring
+
+![image](https://user-images.githubusercontent.com/90442032/235392510-5c625734-903a-4b89-8db7-3af11d69a068.png)
+
+Stack monitoring can be fulfilled by adding Elasticsearch and Kibana integrations to the Elastic Agent policy
+
+#### 5.1.1. Prepare integration authentication
+
+The integrations require authentication to connect to Elasticsearch and Kibana
+
+Reset password for `beats_system`:
+
+```sh
+/usr/share/elasticsearch/bin/elasticsearch-reset-password -u beats_system
+```
+
+#### 5.1.2. Adding Elasticsearch
+
+Search for Elasticsearch under Integrations:
+
+![image](https://user-images.githubusercontent.com/90442032/235392785-c51204da-e0be-47f9-95c1-0c627b233a40.png)
+
+Configure Elasticsearch URL and `beats_system` credentials:
+
+![image](https://user-images.githubusercontent.com/90442032/235392797-fae52017-3eb2-4513-90c8-08b133f9c50a.png)
+
+#### 5.1.3. Adding Kibana
+
+Search for Kibana under Integrations:
+
+![image](https://user-images.githubusercontent.com/90442032/235393010-0b73fae4-9630-4121-a7a3-7d5b7d2c2616.png)
+
+Configure Kibana URL and `beats_system` credentials:
+
+![image](https://user-images.githubusercontent.com/90442032/235393015-b6e0d7ca-b9e9-4471-a01f-64d5f7201408.png)
+
+#### 5.1.4. Stack monitoring view
+
+![image](https://user-images.githubusercontent.com/90442032/235393042-4bfacf7d-cc87-4718-a619-9477ec970051.png)
+
+### 5.2. Elastic Defend
+
+Hosts with Elastic Agents can be secured with Elastic Defend
+
+Search for Elastic Defend under Integrations:
+
+![image](https://user-images.githubusercontent.com/90442032/235393087-25c4120e-8d48-45e9-9402-1deefc525ac8.png)
+
+Configure monitoring settings:
+
+![image](https://user-images.githubusercontent.com/90442032/235393096-16e4bd77-a732-4f11-bd79-9b89f01aaba1.png)
+
+Verify Elastic Defend under Security > Manage > Endpoints:
+
+![image](https://user-images.githubusercontent.com/90442032/235393106-84cb4b3a-8094-4d21-9741-43cca35f3c90.png)
+
+## 6. TBA: Host-based IDS: Wazuh
 
 References:
 - <https://documentation.wazuh.com/current/proof-of-concept-guide/index.html>
 
-## 4. TBA: Performance monitoring: Grafana + Prometheus
+## 7. TBA: Performance monitoring: Grafana + Prometheus
