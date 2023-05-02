@@ -37,13 +37,14 @@ cp /etc/suricata/suricata.yaml /etc/suricata/suricata.yaml.bak
 sed -i 's/      community-id: false/\      community-id: true/' /etc/suricata/suricata.yaml
 echo -e "detect-engine:\n  - rule-reload: true" >> /etc/suricata/suricata.yaml
 sed -i 's/-i eth0/-i eth0 -i eth1/' /etc/sysconfig/suricata
+echo group:stream-events.rules > /etc/suricata/disable.conf
 systemctl daemon-reload
+sudo -u suricata suricata-update
 ```
 
-### 1.4. Test and enable+start Suricata service:
+### 1.4. Enable + start Suricata:
 
 ```sh
-sudo -u suricata suricata-update
 systemctl enable --now suricata
 systemctl status suricata
 tail /var/log/suricata/suricata.log
@@ -530,10 +531,10 @@ Stack monitoring can be fulfilled by adding Elasticsearch and Kibana integration
 
 The integrations require authentication to connect to Elasticsearch and Kibana
 
-Reset password for `beats_system`:
+Reset password for `remote_monitoring_user`:
 
 ```sh
-/usr/share/elasticsearch/bin/elasticsearch-reset-password -u beats_system
+/usr/share/elasticsearch/bin/elasticsearch-reset-password -u remote_monitoring_user
 ```
 
 #### 5.1.2. Adding Elasticsearch
@@ -542,7 +543,7 @@ Search for Elasticsearch under Integrations:
 
 ![image](https://user-images.githubusercontent.com/90442032/235392785-c51204da-e0be-47f9-95c1-0c627b233a40.png)
 
-Configure Elasticsearch URL and `beats_system` credentials:
+Configure Elasticsearch URL and `remote_monitoring_user` credentials:
 
 ![image](https://user-images.githubusercontent.com/90442032/235392797-fae52017-3eb2-4513-90c8-08b133f9c50a.png)
 
@@ -552,7 +553,7 @@ Search for Kibana under Integrations:
 
 ![image](https://user-images.githubusercontent.com/90442032/235393010-0b73fae4-9630-4121-a7a3-7d5b7d2c2616.png)
 
-Configure Kibana URL and `beats_system` credentials:
+Configure Kibana URL and `remote_monitoring_user` credentials:
 
 ![image](https://user-images.githubusercontent.com/90442032/235393015-b6e0d7ca-b9e9-4471-a01f-64d5f7201408.png)
 
