@@ -71,34 +71,14 @@ References:
 
 ### 2.1. Setup Elastic repository
 
-Import GPG key
-
-> The signature is SHA1
->
-> `update-crypto-policies --set DEFAULT:SHA1` is required on newer OS
->
-> Otherwise, the following error will be encountered when importing the GPG key
->
-> ```
-> warning: Signature not supported. Hash algorithm SHA1 not available.
-> error: https://artifacts.elastic.co/GPG-KEY-elasticsearch: key 1 import failed.
-> ```
-
 ```sh
-update-crypto-policies --set DEFAULT:SHA1
-rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
-```
-
-Configure Elastic repository
-
-```sh
-cat << EOF >> /etc/yum.repos.d/elasticsearch.repo
+cat << EOF > /etc/yum.repos.d/elasticsearch.repo
 [elasticsearch]
 name=Elasticsearch repository for 8.x packages
 baseurl=https://artifacts.elastic.co/packages/8.x/yum
 gpgcheck=1
 gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
-enabled=0
+enabled=1
 autorefresh=1
 type=rpm-md
 EOF
@@ -207,7 +187,7 @@ References:
 - <https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup-https.html>
 - <https://www.elastic.co/guide/en/elasticsearch/reference/current/update-node-certs-different.html>
 
-The certificates can be created by `elasticsearch-certutil` or signed by a third party certificate authority, the examples below uses a self-signed lab certificate authority `central.pem` and `central.key`
+The certificates can be created by `elasticsearch-certutil` or signed by a third party certificate authority, the examples below uses a self-signed lab certificate authority `lab_issuer.pem` and `lab_issuer.key`
 
 Read more about generating self-signed certificate authority [here](https://github.com/joetanx/setup/blob/main/self-signed-ca.md)
 
@@ -222,9 +202,9 @@ Read more about generating self-signed certificate authority [here](https://gith
 |---|---|
 |Create CSR and output to `csr-bundle-transport.zip`|`echo csr-bundle-transport.zip \| /usr/share/elasticsearch/bin/elasticsearch-certutil csr`|
 |Unzip CSR bundle to retrieve `instance.csr` and `instance.key`|`unzip /usr/share/elasticsearch/csr-bundle-transport.zip`|
-|Create certificate|`openssl x509 -req -sha256 -days 1096 -CA central.pem -CAkey central.key -CAcreateserial -in instance.csr -out instance.pem`|
+|Create certificate|`openssl x509 -req -sha256 -days 1096 -CA lab_issuer.pem -CAkey lab_issuer.key -CAcreateserial -in instance.csr -out instance.pem`|
 |Export certificate and key into `.p12` bundle<br>☝️ Use a strong password for the certificate bundle|`openssl pkcs12 -export -out transport.p12 -inkey instance.key -in instance.pem -name transport -keysig -passout pass:elastic-transport`|
-|Import the certificate authority into the certificate bundle with alias as `transport-ca`|`keytool -importcert -trustcacerts -noprompt -keystore transport.p12 -storepass elastic-transport -alias transport-ca -file central.pem`|
+|Import the certificate authority into the certificate bundle with alias as `transport-ca`|`keytool -importcert -trustcacerts -noprompt -keystore transport.p12 -storepass elastic-transport -alias transport-ca -file lab_chain.pem`|
 |Verify the resultant certificate bundle|`echo elastic-transport \| keytool -keystore transport.p12 -list`|
 
 ##### HTTP certificate
@@ -234,9 +214,9 @@ Read more about generating self-signed certificate authority [here](https://gith
 |Create CSR and output to `csr-bundle-http.zip`|`echo csr-bundle-http.zip \| /usr/share/elasticsearch/bin/elasticsearch-certutil csr --name foxtrot.vx --dns localhost,foxtrot.vx --ip 127.0.0.1,192.168.17.80`|
 |Unzip CSR bundle to retrieve `foxtrot.vx.csr` and `foxtrot.vx.key`|`unzip /usr/share/elasticsearch/csr-bundle-http.zip`|
 |Create config file for the SANs|`echo "subjectAltName=DNS:foxtrot.vx,DNS:localhost,IP:127.0.0.1,IP:192.168.17.80" > foxtrot.vx.cnf`|
-|Create certificate|`openssl x509 -req -sha256 -days 1096 -CA central.pem -CAkey central.key -CAcreateserial -in foxtrot.vx.csr -extfile foxtrot.vx.cnf -out foxtrot.vx.pem`|
+|Create certificate|`openssl x509 -req -sha256 -days 1096 -CA lab_issuer.pem -CAkey lab_issuer.key -CAcreateserial -in foxtrot.vx.csr -extfile foxtrot.vx.cnf -out foxtrot.vx.pem`|
 |Export certificate and key into `.p12` bundle<br>☝️ Use a strong password for the certificate bundle|`openssl pkcs12 -export -out http.p12 -inkey foxtrot.vx.key -in foxtrot.vx.pem -name http -keysig -passout pass:elastic-http`|
-|Import the certificate authority into the certificate bundle with alias as `http-ca`|`keytool -importcert -trustcacerts -noprompt -keystore http.p12 -storepass elastic-http -alias http-ca -file central.pem`|
+|Import the certificate authority into the certificate bundle with alias as `http-ca`|`keytool -importcert -trustcacerts -noprompt -keystore http.p12 -storepass elastic-http -alias http-ca -file lab_issuer.pem`|
 |Verify the resultant certificate bundle|`echo elastic-http \| keytool -keystore http.p12 -list`|
 
 </details>
@@ -249,9 +229,9 @@ Read more about generating self-signed certificate authority [here](https://gith
 |---|---|
 |Create ECDSA key|`openssl ecparam -name secp384r1 -genkey -out transport.key`|
 |Create CSR|`openssl req -new -key transport.key -subj "/CN=instance" -out transport.csr`|
-|Create certificate|`openssl x509 -req -in transport.csr -CA central.pem -CAkey central.key -CAcreateserial -days 1096 -sha256 -out transport.pem`|
+|Create certificate|`openssl x509 -req -in transport.csr -CA lab_issuer.pem -CAkey lab_issuer.key -CAcreateserial -days 1096 -sha256 -out transport.pem`|
 |Export certificate and key into `.p12` bundle<br>☝️ Use a strong password for the certificate bundle|`openssl pkcs12 -export -out transport.p12 -inkey transport.key -in transport.pem -name transport -keysig -passout pass:elastic-transport`|
-|Import the certificate authority into the certificate bundle with alias as `transport-ca`|`keytool -importcert -trustcacerts -noprompt -keystore transport.p12 -storepass elastic-transport -alias transport-ca -file central.pem`|
+|Import the certificate authority into the certificate bundle with alias as `transport-ca`|`keytool -importcert -trustcacerts -noprompt -keystore transport.p12 -storepass elastic-transport -alias transport-ca -file lab_chain.pem`|
 |Verify the resultant certificate bundle|`echo elastic-transport \| keytool -keystore transport.p12 -list`|
 
 ##### HTTP certificate
@@ -261,9 +241,9 @@ Read more about generating self-signed certificate authority [here](https://gith
 |Create ECDSA key|`openssl ecparam -name secp384r1 -genkey -out http.key`|
 |Create CSR|`openssl req -new -key http.key -subj "/CN=foxtrot.vx" -out http.csr`|
 |Create config file for the SANs|`echo "subjectAltName=DNS:foxtrot.vx,DNS:localhost,IP:127.0.0.1,IP:192.168.17.80" > http-openssl.cnf`|
-|Create certificate|`openssl x509 -req -in http.csr -CA central.pem -CAkey central.key -CAcreateserial -days 1096 -sha256 -out http.pem -extfile http-openssl.cnf`|
+|Create certificate|`openssl x509 -req -in http.csr -CA lab_issuer.pem -CAkey lab_issuer.key -CAcreateserial -days 1096 -sha256 -out http.pem -extfile http-openssl.cnf`|
 |Export certificate and key into `.p12` bundle<br>☝️ Use a strong password for the certificate bundle|`openssl pkcs12 -export -out http.p12 -inkey http.key -in http.pem -name http -keysig -passout pass:elastic-http`|
-|Import the certificate authority into the certificate bundle with alias as `http-ca`|`keytool -importcert -trustcacerts -noprompt -keystore http.p12 -storepass elastic-http -alias http-ca -file central.pem`|
+|Import the certificate authority into the certificate bundle with alias as `http-ca`|`keytool -importcert -trustcacerts -noprompt -keystore http.p12 -storepass elastic-http -alias http-ca -file lab_chain.pem`|
 |Verify the resultant certificate bundle|`echo elastic-http \| keytool -keystore http.p12 -list`|
 
 #### ☝️ About adding certificate authority to the `.p12` bundle using keytool
@@ -279,7 +259,7 @@ org.elasticsearch.ElasticsearchSecurityException: failed to load SSL configurati
 #### 2.5.1. Replace the auto-generated certificates:
 
 ```sh
-cp central.pem /etc/elasticsearch/certs/http_ca.crt
+cp lab_issuer.pem /etc/elasticsearch/certs/http_ca.crt
 cp http.p12 /etc/elasticsearch/certs/http.p12
 cp transport.p12 /etc/elasticsearch/certs/transport.p12
 ```
@@ -318,7 +298,7 @@ systemctl enable --now elasticsearch
 The same HTTP certificates generated for Elasticsearch are reused for Kibana since it's a single-node stack; generate a separate set of HTTP certificates as required
 
 ```sh
-cp central.pem /etc/kibana/elasticsearch-ca.pem
+cp lab_issuer.pem /etc/kibana/elasticsearch-ca.pem
 mkdir /etc/kibana/certs
 cp http.pem /etc/kibana/certs/http.crt
 cp http.key /etc/kibana/certs/http.key
@@ -353,11 +333,11 @@ Kibana encryption keys are required for persistent saved objects, running Kibana
 
 Under Security > Alerts:
 
-![image](https://user-images.githubusercontent.com/90442032/235391887-a49b36b0-0fea-4327-81da-d8a5d324172b.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/2f5a8fc3-2aca-4c06-82a3-6d1d56793cb7)
 
 Under Management > Stack Management > Alerts and Insights > Cases:
 
-![image](https://user-images.githubusercontent.com/90442032/235392027-7d7f0e2e-dbf1-48da-bb16-040813fd70c9.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/ee115f69-fa75-4b75-8305-16c6abf7008d)
 
 Generate Kibana encyption keys: `/usr/share/kibana/bin/kibana-encryption-keys generate`
 
@@ -398,7 +378,7 @@ Go to `Management` → `Fleet`, select `Edit` on the `default` entry under `Outp
 
 To get certificate fingerprint: `openssl x509 -fingerprint -sha256 -in /path/to/elasticsearch-ca.crt | grep sha256 | sed 's/://g'`
 
-![image](https://user-images.githubusercontent.com/90442032/235343709-edb47e12-b265-4a19-86a0-c74e070b2322.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/a5603354-37f0-4760-9c1b-9d38971ac157)
 
 ### 3.2. Setup Fleet Server
 
@@ -406,38 +386,65 @@ Go to `Management` → `Fleet`, select `Add Fleet Server` under `Fleet server ho
 
 Enter Fleet Server details and select `Generate Fleet Server policy`
 
-![image](https://user-images.githubusercontent.com/90442032/235343800-b5eae8e6-1c02-49cb-ad7e-1ef3332fd395.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/6582e0ad-97f1-41a4-bbcc-54b81087b18f)
 
 The wizard provides Fleet Server installation commands after the policy is created:
 
-![image](https://user-images.githubusercontent.com/90442032/235343943-a48f63f4-2611-49f7-acb7-bd35597670b6.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/09224511-7f04-4154-8fd7-e2e78947b876)
 
 To use self-generated certificates, modify the `elastic-agent install` command as stated [here](https://www.elastic.co/guide/en/fleet/current/secure-connections.html#_encrypt_traffic_between_elastic_agents_fleet_server_and_elasticsearch):
 
 ```sh
-sudo ./elastic-agent install \
-   --url=https://192.0.2.1:8220 \
-   --fleet-server-es=https://192.0.2.0:9200 \
-   --fleet-server-service-token=<string> \
-   --fleet-server-policy=fleet-server-policy \
-   --fleet-server-es-ca-trusted-fingerprint=<base64-sha256-fingerprint> \
-   --fleet-server-cert=/path/to/fleet-server.crt \
-   --fleet-server-cert-key=/path/to/fleet-server.key
+mkdir -p /opt/Elastic/Agent/certs
+cp lab_chain.pem /opt/Elastic/Agent/elasticsearch-ca.pem
+ln -s /opt/Elastic/Agent/elasticsearch-ca.pem /opt/Elastic/Agent/ca.crt
+cp http.pem /opt/Elastic/Agent/certs/fleet-server.crt
+cp http.key /opt/Elastic/Agent/certs/fleet-server.key
+https://www.elastic.co/guide/en/fleet/current/secure-connections.html#_encrypt_traffic_between_elastic_agents_fleet_server_and_elasticsearch
+curl -L -O https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-8.12.0-linux-x86_64.tar.gz
+tar xzvf elastic-agent-8.12.0-linux-x86_64.tar.gz
+cd elastic-agent-8.12.0-linux-x86_64
+./elastic-agent install \
+  --url=https://delta.vx:8220 \
+  --fleet-server-es=https://delta.vx:9200 \
+  --fleet-server-service-token=AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL3Rva2VuLTE3MDY4NDUwOTEwNDQ6d2U2UXlvdEpRSkdObkhYSndWQkFrUQ \
+  --fleet-server-policy=fleet-server-policy \
+  --fleet-server-es-ca-trusted-fingerprint=63DB6C33C00C46A364A1E56F0316E36AABEB290BE5656939C965BC65C9EE755D \
+  --fleet-server-es-ca=/opt/Elastic/Agent/elasticsearch-ca.pem \
+  --certificate-authorities=/opt/Elastic/Agent/ca.crt \
+  --fleet-server-cert=/opt/Elastic/Agent/certs/fleet-server.crt \
+  --fleet-server-cert-key=/opt/Elastic/Agent/certs/fleet-server.key \
+  --fleet-server-port=8220
 ```
 
 Example successful installation output:
 
-```sh
+```console
+[root@foxtrot elastic-agent-8.12.0-linux-x86_64]# ./elastic-agent install \
+  --url=https://foxtrot.vx:8220 \
+  --fleet-server-es=https://foxtrot.vx:9200 \
+  --fleet-server-service-token=AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL3Rva2VuLTE3MDY4NDUwOTEwNDQ6d2U2UXlvdEpRSkdObkhYSndWQkFrUQ \
+  --fleet-server-policy=fleet-server-policy \
+  --fleet-server-es-ca-trusted-fingerprint=63DB6C33C00C46A364A1E56F0316E36AABEB290BE5656939C965BC65C9EE755D \
+  --fleet-server-es-ca=/etc/elastic-agent/elasticsearch-ca.pem \
+  --certificate-authorities=/etc/elastic-agent/ca.crt \
+  --fleet-server-cert=/etc/elastic-agent/certs/fleet-server.crt \
+  --fleet-server-cert-key=/etc/elastic-agent/certs/fleet-server.key \
+  --fleet-server-port=8220
 Elastic Agent will be installed at /opt/Elastic/Agent and will run as a service. Do you want to continue? [Y/n]:
-{"log.level":"info","@timestamp":"2023-04-30T16:20:04.753+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":753},"message":"Waiting for Elastic Agent to start","ecs.version":"1.6.0"}
-{"log.level":"info","@timestamp":"2023-04-30T16:20:08.758+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":784},"message":"Fleet Server - Running on policy with Fleet Server integration: fleet-server-policy; missing config fleet.agent.id (expected during bootstrap process)","ecs.version":"1.6.0"}
-{"log.level":"info","@timestamp":"2023-04-30T16:20:09.322+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":475},"message":"Starting enrollment to URL: https://foxtrot.vx:8220/","ecs.version":"1.6.0"}
-{"log.level":"info","@timestamp":"2023-04-30T16:20:10.514+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":273},"message":"Successfully triggered restart on running Elastic Agent.","ecs.version":"1.6.0"}
+[    ] Service Started  [1s] Elastic Agent successfully installed, starting enrollment.
+[=   ] Waiting For Enroll...  [3s] {"log.level":"info","@timestamp":"2024-02-02T11:40:43.876+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":461},"message":"Restarting agent daemon, attempt 0","ecs.version":"1.6.0"}
+[  ==] Waiting For Enroll...  [5s] {"log.level":"info","@timestamp":"2024-02-02T11:40:45.878+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":804},"message":"Waiting for Elastic Agent to start Fleet Server","ecs.version":"1.6.0"}
+[ ===] Waiting For Enroll...  [9s] {"log.level":"info","@timestamp":"2024-02-02T11:40:49.880+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":818},"message":"Fleet Server - Running on policy with Fleet Server integration: fleet-server-policy; missing config fleet.agent.id (expected during bootstrap process)","ecs.version":"1.6.0"}
+[  ==] Waiting For Enroll...  [10s] {"log.level":"info","@timestamp":"2024-02-02T11:40:50.606+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":496},"message":"Starting enrollment to URL: https://foxtrot.vx:8220/","ecs.version":"1.6.0"}
+[==  ] Waiting For Enroll...  [11s] {"log.level":"info","@timestamp":"2024-02-02T11:40:51.761+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":461},"message":"Restarting agent daemon, attempt 0","ecs.version":"1.6.0"}
+{"log.level":"info","@timestamp":"2024-02-02T11:40:51.762+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":285},"message":"Successfully triggered restart on running Elastic Agent.","ecs.version":"1.6.0"}
 Successfully enrolled the Elastic Agent.
+[==  ] Done  [11s]
 Elastic Agent has been successfully installed.
 ```
 
-![image](https://user-images.githubusercontent.com/90442032/235344182-83575a81-9584-4929-8cb4-8c54c339ad21.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/fd2d6c5a-de7f-4a51-8d8b-ee94bdb97b3c)
 
 Allow Fleet Server communication on firewall:
 
@@ -449,35 +456,46 @@ firewall-cmd --add-port 8220/tcp --permanent && firewall-cmd --reload
 
 Select `Continue enrolling Elastic Agent` from the previous wizard and create an Agent policy:
 
-![image](https://user-images.githubusercontent.com/90442032/235344236-d22fd826-6884-4656-9d0c-ac176db62df6.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/c44dbf8e-452e-4793-929e-70bb3227391a)
+
+![image](https://github.com/joetanx/soc-lab/assets/90442032/436da767-3e1e-423e-98a9-a85534ded4c6)
 
 The wizard provides Elastic Agent installation commands after the policy is created:
 
-![image](https://user-images.githubusercontent.com/90442032/235344255-6604131d-02b9-4452-ba6b-87bb52c4e4c4.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/92012cac-b2f1-4ab0-947d-f49b0da29b34)
 
 To use self-generated certificates, modify the `elastic-agent install` command as stated [here](https://www.elastic.co/guide/en/fleet/current/secure-connections.html#_encrypt_traffic_between_elastic_agents_fleet_server_and_elasticsearch):
 
 ```sh
-sudo elastic-agent install --url=https://192.0.2.1:8220 \
-  --enrollment-token=<string> \
-  --fleet-server-es-ca-trusted-fingerprint=<base64-sha256-fingerprint>
+curl -sLo /opt/Elastic/Agent/ca.crt https://github.com/joetanx/lab-certs/raw/main/ca/lab_chain.pem
+curl -L -O https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-8.12.0-linux-x86_64.tar.gz
+tar xzvf elastic-agent-8.12.0-linux-x86_64.tar.gz
+cd elastic-agent-8.12.0-linux-x86_64
+./elastic-agent install \
+  --url=https://delta.vx:8220 \
+  --enrollment-token=UnRqcVo0MEIyUTdXZzV3UVdXR1I6YmRWczM5RXpUOEt0QlJMdWxaaG9sUQ== \
+  --certificate-authorities=/opt/Elastic/Agent/ca.crt
 ```
 
 Example successful installation output:
 
-```sh
+```console
+[root@quebec elastic-agent-8.12.0-linux-x86_64]# ./elastic-agent install --url=https://foxtrot.vx:8220 --enrollment-token=UnRqcVo0MEIyUTdXZzV3UVdXR1I6YmRWczM5RXpUOEt0QlJMdWxaaG9sUQ== --certificate-authorities=/etc/elastic-agent/ca.crt
 Elastic Agent will be installed at /opt/Elastic/Agent and will run as a service. Do you want to continue? [Y/n]:
-{"log.level":"info","@timestamp":"2023-04-30T16:23:07.968+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":475},"message":"Starting enrollment to URL: https://foxtrot.vx:8220/","ecs.version":"1.6.0"}
-{"log.level":"info","@timestamp":"2023-04-30T16:23:08.822+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":273},"message":"Successfully triggered restart on running Elastic Agent.","ecs.version":"1.6.0"}
+[ ===] Service Started  [1s] Elastic Agent successfully installed, starting enrollment.
+[==  ] Waiting For Enroll...  [2s] {"log.level":"info","@timestamp":"2024-02-02T11:48:42.962+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":496},"message":"Starting enrollment to URL: https://foxtrot.vx:8220/","ecs.version":"1.6.0"}
+[    ] Waiting For Enroll...  [3s] {"log.level":"info","@timestamp":"2024-02-02T11:48:43.961+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":461},"message":"Restarting agent daemon, attempt 0","ecs.version":"1.6.0"}
+{"log.level":"info","@timestamp":"2024-02-02T11:48:43.963+0800","log.origin":{"file.name":"cmd/enroll_cmd.go","file.line":285},"message":"Successfully triggered restart on running Elastic Agent.","ecs.version":"1.6.0"}
 Successfully enrolled the Elastic Agent.
+[   =] Done  [3s]
 Elastic Agent has been successfully installed.
 ```
 
-![image](https://user-images.githubusercontent.com/90442032/235344335-24154c78-b068-4417-a788-9f844d3bdc8f.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/95814aa9-4751-49c8-9a4c-a2d45151d680)
 
 ### 3.4. Example Fleet Server + Elastic Agent output
 
-![image](https://user-images.githubusercontent.com/90442032/235344386-a573adfc-ba08-44bf-ba2c-0875d9e6342e.png)
+![image](https://github.com/joetanx/soc-lab/assets/90442032/989d81aa-2052-43f5-998a-0e2b8e0a7190)
 
 ## 4. Integrate Suricata to Elastic
 
@@ -519,15 +537,35 @@ Simply search for Suricata returns `Alerts` and `Events` views in both `Dashboar
 
 ![image](https://user-images.githubusercontent.com/90442032/235355693-7eaa236d-0cc5-4b81-83f1-8a2502f2b8e5.png)
 
-## 5. Additional Elastic configurations
+## 5. Syslog integration with CyberArk PAM
 
-### 5.1. Stack monitoring
+Ref: https://docs.elastic.co/en/integrations/cyberarkpas
+
+![image](https://github.com/joetanx/soc-lab/assets/90442032/68c1d0d5-80f9-4c66-b946-513cf4d83218)
+
+![image](https://github.com/joetanx/soc-lab/assets/90442032/7e3b1992-e6f2-43e4-945c-4e8259cdbb1e)
+
+![image](https://github.com/joetanx/soc-lab/assets/90442032/3d1f17ed-98a7-404a-a2c7-a282aa5098f1)
+
+![image](https://github.com/joetanx/soc-lab/assets/90442032/7dec2bc6-1a79-4ae7-9f06-72d014d3c97b)
+
+This integration sets up a tcp/udp listener on the Elastic Agent, allow communication to the configured ports on firewall to allow the logs from PAM to flow in
+
+```sh
+firewall-cmd --permanent --add-port=9301/tcp
+firewall-cmd --permanent --add-port=9301/udp
+firewall-cmd --reload
+```
+
+## 6. Additional Elastic configurations
+
+### 6.1. Stack monitoring
 
 ![image](https://user-images.githubusercontent.com/90442032/235392510-5c625734-903a-4b89-8db7-3af11d69a068.png)
 
 Stack monitoring can be fulfilled by adding Elasticsearch and Kibana integrations to the Elastic Agent policy
 
-#### 5.1.1. Prepare integration authentication
+#### 6.1.1. Prepare integration authentication
 
 The integrations require authentication to connect to Elasticsearch and Kibana
 
@@ -537,7 +575,7 @@ Reset password for `remote_monitoring_user`:
 /usr/share/elasticsearch/bin/elasticsearch-reset-password -u remote_monitoring_user
 ```
 
-#### 5.1.2. Adding Elasticsearch
+#### 6.1.2. Adding Elasticsearch
 
 Search for Elasticsearch under Integrations:
 
@@ -547,7 +585,7 @@ Configure Elasticsearch URL and `remote_monitoring_user` credentials:
 
 ![image](https://user-images.githubusercontent.com/90442032/235392797-fae52017-3eb2-4513-90c8-08b133f9c50a.png)
 
-#### 5.1.3. Adding Kibana
+#### 6.1.3. Adding Kibana
 
 Search for Kibana under Integrations:
 
@@ -557,11 +595,11 @@ Configure Kibana URL and `remote_monitoring_user` credentials:
 
 ![image](https://user-images.githubusercontent.com/90442032/235393015-b6e0d7ca-b9e9-4471-a01f-64d5f7201408.png)
 
-#### 5.1.4. Stack monitoring view
+#### 6.1.4. Stack monitoring view
 
 ![image](https://user-images.githubusercontent.com/90442032/235393042-4bfacf7d-cc87-4718-a619-9477ec970051.png)
 
-### 5.2. Elastic Defend
+### 6.2. Elastic Defend
 
 Hosts with Elastic Agents can be secured with Elastic Defend
 
@@ -577,9 +615,9 @@ Verify Elastic Defend under Security > Manage > Endpoints:
 
 ![image](https://user-images.githubusercontent.com/90442032/235393106-84cb4b3a-8094-4d21-9741-43cca35f3c90.png)
 
-## 6. TBA: Host-based IDS: Wazuh
+## 7. TBA: Host-based IDS: Wazuh
 
 References:
 - <https://documentation.wazuh.com/current/proof-of-concept-guide/index.html>
 
-## 7. TBA: Performance monitoring: Grafana + Prometheus
+## 8. TBA: Performance monitoring: Grafana + Prometheus
