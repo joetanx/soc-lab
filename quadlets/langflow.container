@@ -1,7 +1,9 @@
 [Unit]
 Description=traefik container
 Requires=soc-network.service
-After=soc-network.service
+Requires=postgres.service
+Requires=traefik.service
+After=postgres.service
 
 [Container]
 ContainerName=langflow
