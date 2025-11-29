@@ -1,0 +1,9 @@
+[Unit]
+Description=soc lab network
+After=network.target
+
+[Network]
+NetworkName=soc
+
+[Install]
+WantedBy=multi-user.target

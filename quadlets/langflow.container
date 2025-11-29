@@ -1,0 +1,20 @@
+[Unit]
+Description=traefik container
+Requires=soc-network.service
+After=soc-network.service
+
+[Container]
+ContainerName=langflow
+Image=docker.io/langflowai/langflow:latest
+Network=soc.network
+Volume=langflow.volume:/app/langflow:Z
+Environment=LANGFLOW_DATABASE_URL=postgresql://postgres:password@postgres:5432/langflow
+Environment=LANGFLOW_CONFIG_DIR=/app/langflow
+Label=traefik.enable=true
+Label=traefik.http.routers.langflow.rule=Host(`langflow.vx`)
+Label=traefik.http.routers.langflow.loadbalancer.server.port=7860
+Label=traefik.http.routers.langflow.entrypoints=websecure
+Label=traefik.http.routers.dashboard.tls=true
+
+[Install]
+WantedBy=multi-user.target
