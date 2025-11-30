@@ -14,9 +14,9 @@ Environment=LANGFLOW_DATABASE_URL=postgresql://postgres:password@postgres:5432/l
 Environment=LANGFLOW_CONFIG_DIR=/app/langflow
 Label=traefik.enable=true
 Label=traefik.http.routers.langflow.rule=Host(`langflow.vx`)
-Label=traefik.http.routers.langflow.loadbalancer.server.port=7860
+Label=traefik.http.services.langflow.loadbalancer.server.port=7860
 Label=traefik.http.routers.langflow.entrypoints=websecure
-Label=traefik.http.routers.dashboard.tls=true
+Label=traefik.http.routers.langflow.tls=true
 
 [Install]
 WantedBy=multi-user.target
