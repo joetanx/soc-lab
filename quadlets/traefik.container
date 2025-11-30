@@ -18,18 +18,18 @@ Label=traefik.http.routers.dashboard.rule=Host(`traefik.vx`)
 Label=traefik.http.routers.dashboard.entrypoints=websecure
 Label=traefik.http.routers.dashboard.service=api@internal
 Label=traefik.http.routers.dashboard.tls=true
-Exec=--api.insecure=false
-Exec=--api.dashboard=true
-Exec=--providers.docker=true
-Exec=--providers.docker.exposedbydefault=false
-Exec=--providers.docker.network=proxy
-Exec=--providers.file.directory=/etc/traefik/dynamic
-Exec=--entryPoints.web.address=:80
-Exec=--entryPoints.web.http.redirections.entryPoint.to=websecure
-Exec=--entryPoints.web.http.redirections.entryPoint.scheme=https
-Exec=--entryPoints.web.http.redirections.entryPoint.permanent=true
-Exec=--entryPoints.websecure.address=:443
-Exec=--entryPoints.websecure.http.tls=true
+Exec=--api.insecure=false \
+--api.dashboard=true \
+--providers.docker=true \
+--providers.docker.exposedbydefault=false \
+--providers.docker.network=proxy \
+--providers.file.directory=/etc/traefik/dynamic \
+--entryPoints.web.address=:80 \
+--entryPoints.web.http.redirections.entryPoint.to=websecure \
+--entryPoints.web.http.redirections.entryPoint.scheme=https \
+--entryPoints.web.http.redirections.entryPoint.permanent=true \
+--entryPoints.websecure.address=:443 \
+--entryPoints.websecure.http.tls=true
 
 [Install]
 WantedBy=multi-user.target
