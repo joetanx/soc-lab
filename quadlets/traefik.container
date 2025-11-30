@@ -9,10 +9,10 @@ Image=docker.io/library/traefik:latest
 Network=soc.network
 PublishPort=80:80
 PublishPort=443:443
-Volume=/var/run/docker.sock:/var/run/docker.sock:ro
+Volume=/var/run/podman/podman.sock:/var/run/docker.sock:ro
 Volume=traefik-tls.volume:/etc/traefik/tls:ro
 Volume=traefik-dynamic.volume:/etc/traefik/dynamic:ro
-NoNewPrivileges=true
+SecurityLabelDisable=true
 Label=traefik.enable=true
 Label=traefik.http.routers.dashboard.rule=Host(`traefik.vx`)
 Label=traefik.http.routers.dashboard.entrypoints=websecure
