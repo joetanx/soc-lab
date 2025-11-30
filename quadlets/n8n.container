@@ -15,10 +15,10 @@ Environment=TZ=Asia/Singapore
 Environment=N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
 Environment=N8N_RUNNERS_ENABLED=true
 Environment=DB_TYPE=postgresdb
-Environment=DB_POSTGRESDB_DATABASE=postgres
+Environment=DB_POSTGRESDB_DATABASE=n8n
 Environment=DB_POSTGRESDB_HOST=postgres
 Environment=DB_POSTGRESDB_PORT=5432
-Environment=DB_POSTGRESDB_USER=n8n
+Environment=DB_POSTGRESDB_USER=postgres
 Environment=DB_POSTGRESDB_PASSWORD=password
 Environment=DB_POSTGRESDB_SCHEMA=public
 Label=traefik.enable=true
