@@ -8,6 +8,10 @@ ContainerName=redis
 Image=docker.io/library/redis:latest
 Network=soc.network
 Volume=redisdata:/data:Z
+HealthCmd=/usr/local/bin/redis-cli ping
+HealthInterval=5
+HealthTimeout=1s
+HealthRetries=3
 
 [Install]
 WantedBy=multi-user.target

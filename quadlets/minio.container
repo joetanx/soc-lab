@@ -11,6 +11,10 @@ Volume=s3data:/data:Z
 Environment=MINIO_ROOT_USER=opencti
 Environment=MINIO_ROOT_PASSWORD=password
 Exec=server /data
+HealthCmd=/usr/bin/mc ready local
+HealthInterval=5s
+HealthTimeout=1s
+HealthRetries=3
 
 [Install]
 WantedBy=multi-user.target

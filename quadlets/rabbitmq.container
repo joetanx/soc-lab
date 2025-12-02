@@ -11,6 +11,10 @@ Volume=amqpdata:/var/lib/rabbitmq:Z
 Environment=RABBITMQ_DEFAULT_USER=opencti
 Environment=RABBITMQ_DEFAULT_PASS=password
 Environment=RABBITMQ_NODENAME=rabbit01@localhost
+HealthCmd=/opt/rabbitmq/sbin/rabbitmq-diagnostics -q ping
+HealthInterval=5s
+HealthTimeout=1s
+HealthRetries=3
 
 [Install]
 WantedBy=multi-user.target
