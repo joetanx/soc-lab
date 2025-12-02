@@ -46,5 +46,11 @@ HealthInterval=5s
 HealthTimeout=1s
 HealthRetries=3
 
+[Service]
+# elasticsearch can take some time to be ready, causing `connect ECONNREFUSED 10.89.0.6:9200`
+# the restart options retries opencti after 10 seconds
+Restart=on-failure
+RestartSec=10
+
 [Install]
 WantedBy=multi-user.target
