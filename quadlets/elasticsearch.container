@@ -13,7 +13,7 @@ Environment=xpack.ml.enabled=false
 Environment=xpack.security.enabled=false
 Environment=logger.org.elasticsearch.discovery=ERROR
 HealthCmd=/usr/bin/curl -s http://localhost:9200/_cluster/health?wait_for_status=yellow >/dev/null || exit 1
-HealthInterval=5s
+HealthInterval=15s
 HealthTimeout=1s
 HealthRetries=3
 

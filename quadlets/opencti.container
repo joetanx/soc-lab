@@ -42,7 +42,7 @@ Label=traefik.http.services.opencti.loadbalancer.server.port=8080
 Label=traefik.http.routers.opencti.entrypoints=websecure
 Label=traefik.http.routers.opencti.tls=true
 HealthCmd=/usr/bin/wget -qO- http://localhost:8080/health?health_access_key=password
-HealthInterval=5s
+HealthInterval=15s
 HealthTimeout=1s
 HealthRetries=3
 

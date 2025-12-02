@@ -9,7 +9,7 @@ Image=docker.io/library/redis:latest
 Network=soc.network
 Volume=redisdata:/data:Z
 HealthCmd=/usr/local/bin/redis-cli ping
-HealthInterval=5s
+HealthInterval=15s
 HealthTimeout=1s
 HealthRetries=3
 
