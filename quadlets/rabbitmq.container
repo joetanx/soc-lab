@@ -5,7 +5,7 @@ After=soc-network.service
 
 [Container]
 ContainerName=rabbitmq
-Image=docker.io/library/rabbitmq:latest
+Image=docker.io/library/rabbitmq:management
 Network=soc.network
 Volume=amqpdata:/var/lib/rabbitmq:Z
 Environment=RABBITMQ_DEFAULT_USER=opencti
