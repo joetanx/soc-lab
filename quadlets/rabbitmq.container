@@ -1,0 +1,16 @@
+[Unit]
+Description=rabbitmq container
+Requires=soc-network.service
+After=soc-network.service
+
+[Container]
+ContainerName=rabbitmq
+Image=docker.io/library/rabbitmq:latest
+Network=soc.network
+Volume=amqpdata:/var/lib/rabbitmq:Z
+Environment=RABBITMQ_DEFAULT_USER=opencti
+Environment=RABBITMQ_DEFAULT_PASS=password
+Environment=RABBITMQ_NODENAME=rabbit01@localhost
+
+[Install]
+WantedBy=multi-user.target

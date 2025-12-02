@@ -1,0 +1,16 @@
+[Unit]
+Description=minio container
+Requires=soc-network.service
+After=soc-network.service
+
+[Container]
+ContainerName=minio
+Image=docker.io/minio/minio:latest
+Network=soc.network
+Volume=s3data:/data:Z
+Environment=MINIO_ROOT_USER=opencti
+Environment=MINIO_ROOT_PASSWORD=password
+Exec=server /data
+
+[Install]
+WantedBy=multi-user.target

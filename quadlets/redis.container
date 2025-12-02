@@ -1,0 +1,13 @@
+[Unit]
+Description=redis container
+Requires=soc-network.service
+After=soc-network.service
+
+[Container]
+ContainerName=redis
+Image=docker.io/library/redis:latest
+Network=soc.network
+Volume=redisdata:/data:Z
+
+[Install]
+WantedBy=multi-user.target
