@@ -5,7 +5,7 @@ After=soc-network.service
 
 [Container]
 ContainerName=elasticsearch
-Image=docker.io/elastic/elasticsearch:9.2.1
+Image=docker.io/elastic/elasticsearch:9.2.2
 Network=soc.network
 Volume=esdata:/usr/share/elasticsearch/data:Z
 Environment=discovery.type=single-node
